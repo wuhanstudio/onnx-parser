@@ -56,22 +56,66 @@ void onnx_graph_info(Onnx__GraphProto graph)
 {
     printf("---- Graph Info ----\n");
     
+    // Input
+    printf("---- Graph Input Info ----\n");
     printf("Graph inputs number: %ld\n", graph.n_input);
     for(int i = 0; i < graph.n_input; i++)
     {
         onnx_graph_input_info(*graph.input[i]);
     }
 
+    // Output
+    printf("---- Graph Output Info ----\n");
     printf("Graph outputs number: %ld\n", graph.n_output);
     for(int i = 0; i < graph.n_output; i++)
     {
         onnx_graph_output_info(*graph.output[i]);
     }
+
+    // Nodes
+    printf("---- Graph Node Info ----\n");
+    printf("Graph nodes number: %ld\n", graph.n_node);
+    for(int i = 0; i < graph.n_node; i++)
+    {
+        onnx_graph_node_info(*graph.node[i]);
+    }
+}
+
+void onnx_graph_info_sorted(Onnx__GraphProto graph)
+{
+    printf("---- Graph Info ----\n");
+    
+    // Input
+    printf("---- Graph Input Info ----\n");
+    printf("Graph inputs number: %ld\n", graph.n_input);
+    for(int i = 0; i < graph.n_input; i++)
+    {
+        onnx_graph_input_info(*graph.input[i]);
+    }
+
+    // Output
+    printf("---- Graph Output Info ----\n");
+    printf("Graph outputs number: %ld\n", graph.n_output);
+    for(int i = 0; i < graph.n_output; i++)
+    {
+        onnx_graph_output_info(*graph.output[i]);
+    }
+
+    // Nodes
+    printf("---- Graph Node Info ----\n");
+    printf("Graph nodes number: %ld\n", graph.n_node);
+    Onnx__NodeProto* node = onnx_graph_get_node_by_input(graph, graph.input[0]->name);
+
+    while(node != NULL)
+    {
+        onnx_graph_node_info(*node);
+        node = onnx_graph_get_node_by_input(graph, node->output[0]);
+    }
+
 }
 
 void onnx_graph_input_info(Onnx__ValueInfoProto input)
 {
-    printf("---- Graph Input Info ----\n");
     printf("Input name %s\n", input.name);
 
     Onnx__TypeProto type = *(input.type);
@@ -114,7 +158,6 @@ void onnx_graph_value_tensor_shape_dimension_info(Onnx__TensorShapeProto__Dimens
 
 void onnx_graph_output_info(Onnx__ValueInfoProto output)
 {
-    printf("---- Graph Output Info ----\n");
     printf("Output name %s\n", output.name);
 
     Onnx__TypeProto type = *(output.type);
@@ -133,4 +176,26 @@ void onnx_graph_output_info(Onnx__ValueInfoProto output)
         }
     }
     printf("\n");
+}
+
+Onnx__NodeProto* onnx_graph_get_node_by_input(Onnx__GraphProto graph, const char* node_name)
+{
+    for(int i = 0; i < graph.n_node; i++)
+    {
+        Onnx__NodeProto* node = graph.node[i];
+        for(int j = 0; j < node->n_input; j++)
+        {
+            if( strcmp(node->input[j], node_name) == 0)
+            {
+                return node;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+void onnx_graph_node_info(Onnx__NodeProto node)
+{
+    printf("%-12s: %-30s ->    %-30s [%s]\n", node.op_type, node.input[0], node.output[0], node.name);
 }

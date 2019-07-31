@@ -22,7 +22,7 @@ int main(int argc, char const *argv[])
     Onnx__GraphProto* graph = model->graph;
     if(graph != NULL)
     {
-        onnx_graph_info(*graph);
+        onnx_graph_info_sorted(*graph);
     }
 
     // Free Model
