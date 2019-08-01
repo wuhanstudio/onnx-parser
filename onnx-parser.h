@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "onnx.pb-c.h"
 
 Onnx__ModelProto* onnx_load_model(const char* onnx_file_name);

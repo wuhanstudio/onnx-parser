@@ -607,6 +607,7 @@ struct  _Onnx__TensorShapeProto__Dimension
    */
   char *denotation;
   Onnx__TensorShapeProto__Dimension__ValueCase value_case;
+  #pragma anon_unions
   union {
     int64_t dim_value;
     /*
@@ -672,6 +673,7 @@ struct  _Onnx__TypeProto
    */
   char *denotation;
   Onnx__TypeProto__ValueCase value_case;
+  #pragma anon_unions
   union {
     /*
      * The type of a tensor.
