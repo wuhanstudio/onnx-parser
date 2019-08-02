@@ -40,7 +40,11 @@ Onnx__ModelProto* onnx_load_model(const char* onnx_file_name)
     }
     fread(buffer, sz, 1, fp);
 
-    return onnx__model_proto__unpack(NULL, sz, buffer);
+    Onnx__ModelProto* model = onnx__model_proto__unpack(NULL, sz, buffer);
+    free(buffer);
+    fclose(fp);
+
+    return model;
 }
 
 void onnx_model_info(Onnx__ModelProto model)

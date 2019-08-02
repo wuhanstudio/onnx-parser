@@ -54,3 +54,4 @@ dkms.conf
 # Project
 .vscode/
 .sconsign.dblite
+onnx-parser
