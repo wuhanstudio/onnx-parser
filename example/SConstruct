@@ -1,0 +1,21 @@
+import os
+import sys
+
+env = Environment()
+
+objs = []
+objs += Glob('../*.c')
+
+cwd     = os.getcwd()
+path    = [os.path.join(cwd, './')]
+path   += [os.path.join(cwd, '../')]
+path   += [os.path.join(cwd, './backend')]
+
+# Parser
+env.Program(target = "onnx-parser", source = objs + Glob('./parse/parse_test.c'), CPPPATH = path, LIBS=[])
+
+# Transpose
+env.Program(target = "onnx-transpose", source = objs + Glob('./transpose/transpose_test.c') + Glob('./backend/transpose.c'), CPPPATH = path, LIBS=['m'])
+
+# Mnist
+env.Program(target = "onnx-mnist", source = objs + Glob('./mnist/mnist_test.c') + Glob('./backend/*.c'), CPPPATH = path, LIBS=['m'])
