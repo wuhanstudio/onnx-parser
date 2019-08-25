@@ -8,8 +8,8 @@
 #include <float.h>
 #include <math.h>
 
-void* onnx_tensor_info(const float* A, int* shape, int dim);
-float* onnx_tensor_transpose(const float* A, int* shape, int dim, int* perm);
+void* onnx_tensor_info(const float* A, long* shape, long dim);
+float* onnx_tensor_transpose(const float* A, long* shape, long dim, int* perm);
 
 void conv2D(const float *input,                                                // input image
             const uint16_t dim_im_in_x,                                        // input image dimention x

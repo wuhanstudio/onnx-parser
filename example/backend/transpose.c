@@ -1,6 +1,6 @@
 #include "backend.h"
 
-void* onnx_tensor_info(const float* A, int* shape, int dim)
+void* onnx_tensor_info(const float* A, long* shape, long dim)
 {
     int elem = 1;
     for(int i = 0; i < dim; i++)
@@ -24,7 +24,7 @@ void* onnx_tensor_info(const float* A, int* shape, int dim)
     }
 }
 
-float* onnx_tensor_transpose(const float* A, int* shape, int dim, int* perm)
+float* onnx_tensor_transpose(const float* A, long* shape, long dim, int* perm)
 {
     // Get array size
     int elem = 1;

@@ -5,40 +5,125 @@
 #include <float.h>
 #include <math.h>
 
+#include <onnx-parser.h>
+
 #include "mnist.h"
 #include "backend.h"
 
+float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, const char* weight, const char* bias)
+{
+    // Get weight shape
+    long* shapeW = onnx_graph_get_dims_by_name(graph, weight);
+    if(shapeW == NULL)
+    {
+        return NULL;
+    }
+    long dimW = onnx_graph_get_dim_by_name(graph, weight);
+    if(dimW < 0)
+    {
+        return NULL;
+    }
+
+    // Get weights
+    // NCWH --> NWHC
+    int permW_t[] = { 0, 2, 3, 1};
+    float* W = onnx_graph_get_weights_by_name(graph, weight);
+    if(W == NULL)
+    {
+        return NULL;
+    }
+    float* W_t = onnx_tensor_transpose(W, shapeW, dimW, permW_t);
+
+    // Get bias
+    float* B = onnx_graph_get_weights_by_name(graph, bias);
+    if(B == NULL)
+    {
+        return NULL;
+    }
+
+    float* output = (float*) malloc(sizeof(float)*shapeW[0]*shapeInput[1]*shapeInput[2]);
+    memset(output, 0, sizeof(sizeof(float)*shapeW[0]*shapeInput[1]*shapeInput[2]));
+    conv2D(input, shapeInput[1], shapeInput[2], shapeW[1], W, shapeW[0], shapeW[2], shapeW[3], 1, 1, 1, 1, B, output, shapeInput[1], shapeInput[2]);
+
+    free(shapeW);
+    free(W);
+    free(B);
+    free(W_t);
+
+    return output;
+}
+
+float* dense_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, const char* weight, const char* bias)
+{
+    long* shapeW =  onnx_graph_get_dims_by_name(graph, weight);
+    if(shapeW == NULL)
+    {
+        return NULL;
+    }
+    long dimW = onnx_graph_get_dim_by_name(graph, weight);
+    if(dimW < 0)
+    {
+        return NULL;
+    }
+
+    int permW_t[] = {1, 0};
+    float* W = onnx_graph_get_weights_by_name(graph, weight);
+    if(W == NULL)
+    {
+        return NULL;
+    }
+    float* W_t = onnx_tensor_transpose(W, shapeW, dimW, permW_t);
+    float* B = onnx_graph_get_weights_by_name(graph, bias);
+    if(B == NULL)
+    {
+        return NULL;
+    }
+    float* output = (float*) malloc(sizeof(float)*shapeW[1]);
+    memset(output, 0, sizeof(sizeof(float)*shapeW[1]));
+    dense(input, W_t, shapeW[0], shapeW[1], B, output);
+
+    free(shapeW);
+    free(W);
+    free(W_t);
+    free(B);
+
+    return output;
+}
+
 int main(int argc, char const *argv[])
 {
-    int img_index = 0;
-    if(argc == 2)
+    if (argc < 2) 
     {
-        img_index = atoi(argv[1]);
+        printf("Usage: %s onnx_file_name [image_num]\n", argv[0]);
+        return 0;
+    }
+
+    // Load Model
+    Onnx__ModelProto* model = onnx_load_model(argv[1]);
+    if(model == NULL)
+    {
+        printf("Failed to load model %s\n", argv[1]);
+        return -1;
+    }
+
+    // Read Input
+    int img_index = 0;
+    if(argc == 3)
+    {
+        img_index = atoi(argv[2]);
     }
     print_img(img[img_index]);
 
-    // Transpose Input
-    int shapeA[] = {1, 28, 28};
-    int dimA = 3;
+    // 0. Transpose Input
+    // N C W H --> N W H C
+    long shapeInput[] = {1, 28, 28};
+    long dimInput = 3;
     int perm[] = { 1, 2, 0};
-    float* input = onnx_tensor_transpose(img[img_index], shapeA, dimA, perm);
-
-    // Print input
-    // int shapeInput[] = {28, 28, 1};
-    // int dimInput = 3;
-    // onnx_tensor_info(input, shapeInput, dimInput);
+    float* input = onnx_tensor_transpose(img[img_index], shapeInput, dimInput, perm);
 
     // 1. Conv2D
-    int shapeW3[] = {2, 1, 3, 3};
-    int dimW3 = 4;
-    int permW3_t[] = { 0, 2, 3, 1};
-    float* W3_t = onnx_tensor_transpose(W3, shapeW3, dimW3, permW3_t);
-
-    float* conv1 = (float*) malloc(sizeof(float)*28*28*2);
-    memset(conv1, 0, sizeof(sizeof(float)*28*28*2));
-    conv2D(input, 28, 28, 1, W3, 2, 3, 3, 1, 1, 1, 1, B3, conv1, 28, 28);
-
-    free(W3_t);
+    // N W H C
+    float* conv1 = conv2D_layer(model->graph, input, shapeInput, "W3", "B3");
     free(input);
 
     // 2. Relu
@@ -48,20 +133,12 @@ int main(int argc, char const *argv[])
     float* maxpool1 = (float*) malloc(sizeof(float)*14*14*2);
     memset(maxpool1, 0, sizeof(sizeof(float)*14*14*2));
     maxpool(conv1, 28, 28, 2, 2, 2, 0, 0, 2, 2, 14, 14, maxpool1);
-
     free(conv1);
 
     // 4. Conv2D
-    int shapeW2[] = {2, 2, 3, 3};
-    int dimW2 = 4;
-    int perm_t[] = { 0, 2, 3, 1};
-    float* W2_t = onnx_tensor_transpose(W2, shapeW2, dimW2, perm_t);
-
-    float* conv2 = (float*) malloc(sizeof(float)*14*14*2);
-    memset(conv2, 0, sizeof(sizeof(float)*14*14*2));
-    conv2D(maxpool1, 14, 14, 2, W2_t, 2, 3, 3, 1, 1, 1, 1, B2, conv2, 14, 14);
-
-    free(W2_t);
+    // N W H C 
+    long shapeMaxpool1[] = {2, 14, 14};
+    float* conv2 = conv2D_layer(model->graph, maxpool1, shapeMaxpool1, "W2", "B2");
     free(maxpool1);
 
     // 5. Relu
@@ -71,35 +148,18 @@ int main(int argc, char const *argv[])
     float* maxpool2 = (float*) malloc(sizeof(float)*7*7*2);
     memset(maxpool2, 0, sizeof(sizeof(float)*7*7*2));
     maxpool(conv2, 14, 14, 2, 2, 2, 0, 0, 2, 2, 7, 7, maxpool2);
-
     free(conv2);
 
     // Flatten NOT REQUIRED
 
     // 7. Dense
-    int shapeW1[] = {98, 4};
-    int dimW1 = 2;
-    int permW1_t[] = { 1, 0};
-    float* W1_t = onnx_tensor_transpose(W1, shapeW1, dimW1, permW1_t);
-
-    float* dense1 = (float*) malloc(sizeof(float)*4);
-    memset(dense1, 0, sizeof(sizeof(float)*4));
-    dense(maxpool2, W1_t, 98, 4, B1, dense1);
-
-    free(W1_t);
+    long shapeMaxpool2[] = {1, 98};
+    float* dense1 = dense_layer(model->graph, maxpool2, shapeMaxpool2, "W1", "B1");
     free(maxpool2);
 
     // 8. Dense
-    int shapeW[] = {4, 10};
-    int dimW = 2;
-    int permW_t[] = { 1, 0};
-    float* W_t = onnx_tensor_transpose(W, shapeW, dimW, permW_t);
-
-    float* dense2 = (float*) malloc(sizeof(float)*10);
-    memset(dense2, 0, sizeof(sizeof(float)*10));
-    dense(dense1, W_t, 4, 10, B, dense2);
-
-    free(W_t);
+    long shapeDense1[] = {1, 4};
+    float* dense2 = dense_layer(model->graph, dense1, shapeDense1, "W", "B");
     free(dense1);
 
     // 9. Softmax
