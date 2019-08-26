@@ -12,6 +12,19 @@
 #include "mnist.h"
 #include "backend.h"
 
+#define ONNX_USE_NWHC
+#ifdef  ONNX_USE_NWHC
+    // NWHC
+    #define W_INDEX 0
+    #define H_INDEX 1
+    #define C_INDEX 2
+#else
+    // NCWH
+    #define C_INDEX 0
+    #define W_INDEX 1
+    #define H_INDEX 2
+#endif
+
 float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" );
@@ -39,7 +52,7 @@ float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInpu
 
     // Get weights
     // NCWH --> NWHC
-    int permW_t[] = { 0, 2, 3, 1};
+    long permW_t[] = { 0, 2, 3, 1};
     float* W = onnx_graph_get_weights_by_name(graph, weight);
     if(W == NULL)
     {
@@ -54,13 +67,13 @@ float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInpu
         return NULL;
     }
 
-    float* output = (float*) malloc(sizeof(float)*shapeW[0]*shapeInput[0]*shapeInput[1]);
-    memset(output, 0, sizeof(sizeof(float)*shapeW[0]*shapeInput[0]*shapeInput[1]));
-    conv2D(input, shapeInput[0], shapeInput[1], shapeW[1], W_t, shapeW[0], shapeW[2], shapeW[3], 1, 1, 1, 1, B, output, shapeInput[0], shapeInput[1]);
+    float* output = (float*) malloc(sizeof(float)*shapeW[0]*shapeInput[W_INDEX]*shapeInput[H_INDEX]);
+    memset(output, 0, sizeof(sizeof(float)*shapeW[0]*shapeInput[W_INDEX]*shapeInput[H_INDEX]));
+    conv2D(input, shapeInput[W_INDEX], shapeInput[H_INDEX], shapeW[1], W_t, shapeW[0], shapeW[2], shapeW[3], 1, 1, 1, 1, B, output, shapeInput[W_INDEX], shapeInput[H_INDEX]);
 
-    shapeOutput[0] = shapeInput[0];
-    shapeOutput[1] = shapeInput[1];
-    shapeOutput[2] = shapeW[0];
+    shapeOutput[W_INDEX] = shapeInput[W_INDEX];
+    shapeOutput[H_INDEX] = shapeInput[H_INDEX];
+    shapeOutput[C_INDEX] = shapeW[0];
 
     free(W_t);
 
@@ -99,21 +112,21 @@ float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, lo
         }
     }
 
-    uint16_t out_x = (shapeInput[0] - kernel_x + 2 * padding_x) / stride_x + 1;
-    uint16_t out_y = (shapeInput[1] - kernel_y + 2 * padding_y) / stride_y + 1;
+    uint16_t out_x = (shapeInput[W_INDEX] - kernel_x + 2 * padding_x) / stride_x + 1;
+    uint16_t out_y = (shapeInput[H_INDEX] - kernel_y + 2 * padding_y) / stride_y + 1;
 
-    float* output = (float*) malloc(sizeof(float)*out_x*out_y*shapeInput[2]);
+    float* output = (float*) malloc(sizeof(float)*out_x*out_y*shapeInput[C_INDEX]);
     if(output == NULL)
     {
         // No memory
         return NULL;
     }
-    memset(output, 0, sizeof(sizeof(float)*out_x*out_y*shapeInput[2]));
-    maxpool(input, shapeInput[0], shapeInput[1], shapeInput[2], kernel_x, kernel_y, padding_x, padding_y, stride_x, stride_y, out_x, out_y, output);
+    memset(output, 0, sizeof(sizeof(float)*out_x*out_y*shapeInput[C_INDEX]));
+    maxpool(input, shapeInput[W_INDEX], shapeInput[H_INDEX], shapeInput[C_INDEX], kernel_x, kernel_y, padding_x, padding_y, stride_x, stride_y, out_x, out_y, output);
 
-    shapeOutput[0] = out_x;
-    shapeOutput[1] = out_y;
-    shapeOutput[2] = shapeInput[2];
+    shapeOutput[W_INDEX] = out_x;
+    shapeOutput[H_INDEX] = out_y;
+    shapeOutput[C_INDEX] = shapeInput[C_INDEX];
 
     return output;
 }
@@ -138,7 +151,7 @@ float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInpu
 
     assert(shapeW[0] == shapeInput[1]);
 
-    int permW_t[] = {1, 0};
+    long permW_t[] = {1, 0};
     float* W = onnx_graph_get_weights_by_name(graph, weight);
     if(W == NULL)
     {
@@ -201,6 +214,31 @@ float* relu_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput,
     return output;
 }
 
+float* transpose_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+{
+    assert(graph != NULL && input != NULL && layer_name != "" );
+
+    Onnx__NodeProto* node = onnx_graph_get_node_by_name(graph, layer_name);
+    if(node == NULL)
+    {
+        return NULL;
+    }
+
+    long perm_t[3];
+    long* perm = node->attribute[0]->ints;
+    perm_t[0] = perm[1] - 1;
+    perm_t[1] = perm[2] - 1;
+    perm_t[2] = perm[3] - 1;
+
+    float* output = onnx_tensor_transpose(input, shapeInput, 3, perm_t);
+
+    shapeOutput[0] = shapeInput[perm_t[0]];
+    shapeOutput[1] = shapeInput[perm_t[1]];
+    shapeOutput[2] = shapeInput[perm_t[2]];
+
+    return output;
+}
+
 float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" && shapeInput[1] > 0);
@@ -242,72 +280,95 @@ int main(int argc, char const *argv[])
     }
     print_img(img[img_index]);
 
-    // Initialize input shape
+    // 0. Initialize input shape
     long* shapeInput = (long*) malloc(sizeof(long)*3);
     long* shapeOutput = (long*) malloc(sizeof(long)*3);
     shapeInput[0] = 28;
     shapeInput[1] = 28;
     shapeInput[2] =  1;
 
-    // 1. Conv2D
+    // 1. Transpose
+    // printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
+    // float* input = transpose_layer(model->graph, img[img_index], shapeInput, shapeOutput, "Transpose6");
+    // memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+
+    // 2. Conv2D
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* conv1 = conv2D_layer(model->graph, img[img_index], shapeInput, shapeOutput, "conv2d_5");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+    // free(input);
 
-    // 2. Relu
+    // 3. Relu
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* relu1 = relu_layer(model->graph, conv1, shapeInput, shapeOutput, "Relu1");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(conv1);
 
-    // 3. Maxpool
+    // 4. Maxpool
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* maxpool1 = maxpool_layer(model->graph, relu1, shapeInput, shapeOutput, "max_pooling2d_5");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(relu1);
 
-    // 4. Conv2D
+    // 5. Conv2D
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* conv2 = conv2D_layer(model->graph, maxpool1, shapeInput, shapeOutput, "conv2d_6");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(maxpool1);
 
-    // 5. Relu
+    // 6. Relu
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* relu2 = relu_layer(model->graph, conv2, shapeInput, shapeOutput, "Relu");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(conv2);
 
-    // 6. Maxpool
+    // 7. Maxpool
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* maxpool2 = maxpool_layer(model->graph, relu2, shapeInput, shapeOutput, "max_pooling2d_6");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(relu2);
 
-    // 7. Flatten
+    // 8. Transpose
+    // printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
+    // float* maxpool2_t = transpose_layer(model->graph, maxpool2, shapeInput, shapeOutput, "Transpose1");
+    // memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+    // free(maxpool2);
+
+    // 9. Flatten
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     shapeInput[1] = shapeInput[0] * shapeInput[1] * shapeInput[2]; 
     shapeInput[2] = 1; 
     shapeInput[0] = 1; 
 
-    // 8. Dense
+    // 10. Dense
+    printf("%ld %ld %ld\n", shapeInput[0], shapeInput[1], shapeInput[2]);
     float* matmul1 = matmul_layer(model->graph, maxpool2, shapeInput, shapeOutput, "dense_5");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(maxpool2);
 
-    // 9. Add
+    // 11. Add
     float* dense1 = add_layer(model->graph, matmul1, shapeInput, shapeOutput, "Add1");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(matmul1);
 
-    // 10. Dense
+    // 12. Dense
     float* matmul2 = matmul_layer(model->graph, dense1, shapeInput, shapeOutput, "dense_6");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(dense1);
 
-    // 11. Add
+    // 13. Add
     float* dense2 = add_layer(model->graph, matmul2, shapeInput, shapeOutput, "Add");
     memcpy(shapeInput, shapeOutput, sizeof(long)*3);
     free(matmul2);
 
-    // 12. Softmax
+    // 14. Softmax
     float* output = softmax_layer(model->graph, dense2, shapeInput, shapeOutput, "Softmax");
     free(dense2);
 
-    // 13. Result
+    // 15. Identity
+    // Do Nothing Here
+
+    // Result
     float max = 0;
     int max_index = 0;
     printf("\nPredictions: \n");

@@ -24,7 +24,7 @@ void* onnx_tensor_info(const float* A, long* shape, long dim)
     }
 }
 
-float* onnx_tensor_transpose(const float* A, long* shape, long dim, int* perm)
+float* onnx_tensor_transpose(const float* A, long* shape, long dim, long* perm)
 {
     // Get array size
     int elem = 1;

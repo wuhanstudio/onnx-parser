@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
     onnx_tensor_info(A, shapeA, dimA);
 
     // Transpose
-    int perm[] = { 2, 0, 1};
+    long perm[] = { 2, 0, 1};
     float* B = onnx_tensor_transpose(A, shapeA, dimA, perm);
 
     // Print B
