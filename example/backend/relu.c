@@ -1,12 +1,12 @@
 #include "backend.h"
 
-void relu(float *data, uint32_t size)
+void relu(const float *input, uint32_t size, float* output)
 {
     uint32_t i;
-
+    memcpy(output, input, sizeof(float) * size);
     for (i = 0; i < size; i++)
     {
-        if (data[i] < 0)
-            data[i] = 0;
+        if (output[i] < 0)
+            output[i] = 0;
     }
 }

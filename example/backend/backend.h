@@ -29,7 +29,7 @@ void conv2D(const float *input,                                                /
             const uint16_t dim_im_out_y                                        // output image dimension y
 );
 
-void relu(float *data, uint32_t size);
+void relu(const float *input, uint32_t size, float* output);
 
 void maxpool(const float *input,
              const uint16_t dim_im_in_x,  // input image dimension x or W

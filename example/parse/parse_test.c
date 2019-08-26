@@ -29,17 +29,15 @@ int main(int argc, char const *argv[])
     printf("\n");
 
     // Print Selected Node
-    onnx_graph_node_info(onnx_graph_get_node_by_name(graph, "Transpose6"));
+    // onnx_graph_node_info(onnx_graph_get_node_by_name(graph, "Transpose6"));
 
     // Print Weights
-    Onnx__TensorProto** initializer =  graph->initializer;
-    
-    for(int i = 0; i < graph->n_initializer; i++)
-    {
-        onnx_graph_initializer_info(initializer[i]);
-    }
-    
-    printf("\n");
+    // Onnx__TensorProto** initializer =  graph->initializer;
+    // for(int i = 0; i < graph->n_initializer; i++)
+    // {
+    //     onnx_graph_initializer_info(initializer[i]);
+    // } 
+    // printf("\n");
 
     // Free Model
     onnx__model_proto__free_unpacked(model, NULL);
