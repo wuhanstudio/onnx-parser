@@ -22,3 +22,6 @@ env.Program(target = "onnx-mnist", source = objs + Glob('./mnist/mnist.c') + Glo
 
 # mnist-sm
 env.Program(target = "onnx-mnist-sm", source = objs + Glob('./mnist/mnist_sm.c') + Glob('./backend/*.c'), CPPPATH = path, LIBS=['m'])
+
+# mnist-model
+env.Program(target = "onnx-mnist-model", source = objs + Glob('./mnist/mnist_model.c') + Glob('./backend/*.c'), CPPPATH = path, LIBS=['m'])

@@ -1,5 +1,5 @@
-#ifndef __TRANSPOSE_H__
-#define __TRANSPOSE_H__
+#ifndef __ONNX_H__
+#define __ONNX_H__
 
 #include <stdio.h>
 #include <stdint.h>
@@ -24,8 +24,19 @@
     #define H_INDEX 2
 #endif
 
+// Model
 void* onnx_tensor_info(const float* A, long* shape, long dim);
+float* onnx_model_run(Onnx__ModelProto* model, float* input, long* shapeInput);
 
+// Layers
+float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* relu_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+
+// Operators
 float* transpose(const float* A, long* shape, long dim, long* perm);
 
 void conv2D(const float *input,                                                // input image
@@ -49,44 +60,37 @@ void conv2D(const float *input,                                                /
 void relu(const float *input, uint32_t size, float* output);
 
 void maxpool(const float *input,
-             const uint16_t dim_im_in_x,  // input image dimension x or W
-             const uint16_t dim_im_in_y,  // input image dimension y or H
-             const uint16_t ch_im_in,     // number of input image channels
-             const uint16_t dim_kernel_x, // window kernel size
-             const uint16_t dim_kernel_y, // window kernel size
-             const uint16_t padding_x,    // padding sizes
-             const uint16_t padding_y,    // padding sizes
-             const uint16_t stride_x,     // stride
-             const uint16_t stride_y,     // stride
-             const uint16_t dim_im_out_x, // output image dimension x or W
-             const uint16_t dim_im_out_y, // output image dimension y or H
+             const uint16_t dim_im_in_x,    // input image dimension x or W
+             const uint16_t dim_im_in_y,    // input image dimension y or H
+             const uint16_t ch_im_in,       // number of input image channels
+             const uint16_t dim_kernel_x,   // window kernel size
+             const uint16_t dim_kernel_y,   // window kernel size
+             const uint16_t padding_x,      // padding sizes
+             const uint16_t padding_y,      // padding sizes
+             const uint16_t stride_x,       // stride
+             const uint16_t stride_y,       // stride
+             const uint16_t dim_im_out_x,   // output image dimension x or W
+             const uint16_t dim_im_out_y,   // output image dimension y or H
              float *output);
 
-void matmul(const float *input,              // pointer to vector
+void matmul(const float *input,             // pointer to vector
            const float *weight,             // pointer to matrix
-           const uint16_t dim_vec,         // length of the vector
-           const uint16_t num_of_rows,     // numCol of A
+           const uint16_t dim_vec,          // length of the vector
+           const uint16_t num_of_rows,      // numCol of A
            float *output);
 
-void add(const float *input,              // pointer to vector
-           const float *bias,             // pointer to matrix
-           const uint16_t dim_vec,         // length of the vector
+void add(const float *input,                // pointer to vector
+           const float *bias,               // pointer to matrix
+           const uint16_t dim_vec,          // length of the vector
            float *output);
 
 void dense(const float *input,              // pointer to vector
            const float *weight,             // pointer to matrix
-           const uint16_t dim_vec,         // length of the vector
-           const uint16_t num_of_rows,     // numCol of A
+           const uint16_t dim_vec,          // length of the vector
+           const uint16_t num_of_rows,      // numCol of A
            const float *bias,
            float *output);
 
 void softmax(const float *input, const uint32_t dim_vec, float *output);
 
-float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* relu_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-
-#endif // __TRANSPOSE_H__
+#endif // __ONNX_H__
