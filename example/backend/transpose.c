@@ -1,30 +1,6 @@
-#include "backend.h"
+#include "onnx.h"
 
-void* onnx_tensor_info(const float* A, long* shape, long dim)
-{
-    int elem = 1;
-    for(int i = 0; i < dim; i++)
-    {
-        elem = elem * shape[i];
-    }
-
-    printf("Array size: %d\n", elem);
-    for(int i = 0; i < elem; i++)
-    {
-        printf( "%f ", A[i] );
-        int split = 1;
-        for(int j = dim-1; j > 0; j--)
-        {
-            split = split * shape[j];
-            if( (i+1) % split == 0)
-            {
-                printf("\n");
-            }
-        }
-    }
-}
-
-float* onnx_tensor_transpose(const float* A, long* shape, long dim, long* perm)
+float* transpose(const float* A, long* shape, long dim, long* perm)
 {
     // Get array size
     int elem = 1;
@@ -96,4 +72,29 @@ float* onnx_tensor_transpose(const float* A, long* shape, long dim, long* perm)
     free(shapeB);
 
     return B;
+}
+
+float* transpose_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+{
+    assert(graph != NULL && input != NULL && layer_name != "" );
+
+    Onnx__NodeProto* node = onnx_graph_get_node_by_name(graph, layer_name);
+    if(node == NULL)
+    {
+        return NULL;
+    }
+
+    long perm_t[3];
+    long* perm = node->attribute[0]->ints;
+    perm_t[0] = perm[1] - 1;
+    perm_t[1] = perm[2] - 1;
+    perm_t[2] = perm[3] - 1;
+
+    float* output = transpose(input, shapeInput, 3, perm_t);
+
+    shapeOutput[0] = shapeInput[perm_t[0]];
+    shapeOutput[1] = shapeInput[perm_t[1]];
+    shapeOutput[2] = shapeInput[perm_t[2]];
+
+    return output;
 }

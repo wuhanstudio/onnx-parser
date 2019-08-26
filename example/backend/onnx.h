@@ -8,8 +8,25 @@
 #include <float.h>
 #include <math.h>
 
+#include <onnx-parser.h>
+
+#define ONNX_USE_NWHC
+
+#ifdef  ONNX_USE_NWHC
+    // NWHC
+    #define W_INDEX 0
+    #define H_INDEX 1
+    #define C_INDEX 2
+#else
+    // NCWH
+    #define C_INDEX 0
+    #define W_INDEX 1
+    #define H_INDEX 2
+#endif
+
 void* onnx_tensor_info(const float* A, long* shape, long dim);
-float* onnx_tensor_transpose(const float* A, long* shape, long dim, long* perm);
+
+float* transpose(const float* A, long* shape, long dim, long* perm);
 
 void conv2D(const float *input,                                                // input image
             const uint16_t dim_im_in_x,                                        // input image dimention x
@@ -64,5 +81,12 @@ void dense(const float *input,              // pointer to vector
            float *output);
 
 void softmax(const float *input, const uint32_t dim_vec, float *output);
+
+float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* relu_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
 
 #endif // __TRANSPOSE_H__

@@ -1,7 +1,7 @@
 #include <stdio.h>  
 #include <malloc.h>
 
-#include "backend.h"
+#include "onnx.h"
 
 int main(int argc, char const *argv[])
 {
@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
 
     // Transpose
     long perm[] = { 2, 0, 1};
-    float* B = onnx_tensor_transpose(A, shapeA, dimA, perm);
+    float* B = transpose(A, shapeA, dimA, perm);
 
     // Print B
     long shapeB[] = {4, 2, 3};

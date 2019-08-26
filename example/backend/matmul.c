@@ -1,4 +1,4 @@
-#include "backend.h"
+#include "onnx.h"
 
 void matmul(const float *input,              // pointer to vector
            const float *weight,             // pointer to matrix
@@ -15,4 +15,49 @@ void matmul(const float *input,              // pointer to vector
         }
         output[i] = ip_out;
     }
+}
+
+float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+{
+    assert(graph != NULL && input != NULL && layer_name != "" );
+
+    Onnx__NodeProto* node = onnx_graph_get_node_by_name(graph, layer_name);
+    const char* weight = node->input[1];
+
+    long* shapeW =  onnx_graph_get_dims_by_name(graph, weight);
+    if(shapeW == NULL)
+    {
+        return NULL;
+    }
+    long dimW = onnx_graph_get_dim_by_name(graph, weight);
+    if(dimW < 0)
+    {
+        return NULL;
+    }
+
+    assert(shapeW[0] == shapeInput[1]);
+
+    long permW_t[] = {1, 0};
+    float* W = onnx_graph_get_weights_by_name(graph, weight);
+    if(W == NULL)
+    {
+        return NULL;
+    }
+    float* W_t = transpose(W, shapeW, dimW, permW_t);
+
+    float* output = (float*) malloc(sizeof(float)*shapeW[1]);
+    if(output == NULL)
+    {
+        // No memory
+        return NULL;
+    }
+    memset(output, 0, sizeof(sizeof(float)*shapeW[1]));
+    matmul(input, W_t, shapeW[0], shapeW[1], output);
+
+    shapeOutput[0] = shapeInput[0];
+    shapeOutput[1] = shapeW[1];
+
+    free(W_t);
+
+    return output;
 }
