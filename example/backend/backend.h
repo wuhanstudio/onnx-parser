@@ -45,6 +45,17 @@ void maxpool(const float *input,
              const uint16_t dim_im_out_y, // output image dimension y or H
              float *output);
 
+void matmul(const float *input,              // pointer to vector
+           const float *weight,             // pointer to matrix
+           const uint16_t dim_vec,         // length of the vector
+           const uint16_t num_of_rows,     // numCol of A
+           float *output);
+
+void add(const float *input,              // pointer to vector
+           const float *bias,             // pointer to matrix
+           const uint16_t dim_vec,         // length of the vector
+           float *output);
+
 void dense(const float *input,              // pointer to vector
            const float *weight,             // pointer to matrix
            const uint16_t dim_vec,         // length of the vector

@@ -182,9 +182,21 @@ void onnx_graph_output_info(Onnx__ValueInfoProto* output)
     printf("\n");
 }
 
-void onnx_graph_node_weights(Onnx__NodeProto* node)
+void onnx_graph_initializer_info(Onnx__TensorProto* initializer)
 {
-    printf("[%s] op_type: %s\n", node->name, node->op_type);
+    printf("%s: [", initializer->name);    
+    for(int i = 0; i < initializer->n_dims; i++)
+    {
+        printf("%ld, ", initializer->dims[i]);
+    }
+    printf("]\n");
+    
+    printf("%s: [", initializer->name);    
+    for(int i = 0; i < initializer->n_float_data; i++)
+    {
+        printf("%f, ", initializer->float_data[i]);
+    }
+    printf("]\n");
 }
 
 Onnx__NodeProto* onnx_graph_get_node_by_name(Onnx__GraphProto* graph, const char* node_name)
@@ -219,6 +231,51 @@ Onnx__NodeProto* onnx_graph_get_node_by_input(Onnx__GraphProto* graph, const cha
     }
 
     return NULL;
+}
+
+float* onnx_graph_get_weights_by_name(Onnx__GraphProto* graph, const char* node_name)
+{
+    Onnx__TensorProto** initializer =  graph->initializer;
+
+    for(int i = 0; i < graph->n_initializer; i++)
+    {
+        if( strcmp(graph->initializer[i]->name, node_name) == 0)
+        {
+            return graph->initializer[i]->float_data;
+        }
+    }
+
+    return NULL;
+}
+
+long* onnx_graph_get_dims_by_name(Onnx__GraphProto* graph, const char* node_name)
+{
+    Onnx__TensorProto** initializer =  graph->initializer;
+
+    for(int i = 0; i < graph->n_initializer; i++)
+    {
+        if( strcmp(graph->initializer[i]->name, node_name) == 0)
+        {
+            return graph->initializer[i]->dims;
+        }
+    }
+
+    return NULL;
+}
+
+long onnx_graph_get_dim_by_name(Onnx__GraphProto* graph, const char* node_name)
+{
+    Onnx__TensorProto** initializer =  graph->initializer;
+
+    for(int i = 0; i < graph->n_initializer; i++)
+    {
+        if( strcmp(graph->initializer[i]->name, node_name) == 0)
+        {
+            return graph->initializer[i]->n_dims;
+        }
+    }
+
+    return -1;
 }
 
 void onnx_graph_node_info(Onnx__NodeProto* node)

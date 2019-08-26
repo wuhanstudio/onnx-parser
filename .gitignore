@@ -55,3 +55,5 @@ dkms.conf
 .vscode/
 .sconsign.dblite
 onnx-parser
+onnx-mnist
+onnx-transpose

@@ -51,13 +51,6 @@ float* onnx_tensor_transpose(const float* A, long* shape, long dim, int* perm)
         shapeB[i] = shape[perm[i]];
     }
 
-    // printf("Shape B: ");
-    // for(int i = 0; i < dim; i++)
-    // {
-    //     printf("%d ", shapeB[i]);
-    // }
-    // printf("\n");
-
     // Transpose
     for(int src = 0; src < elem; src++)
     {
@@ -96,17 +89,6 @@ float* onnx_tensor_transpose(const float* A, long* shape, long dim, int* perm)
 
         B[dst] = A[src];
 
-        // printf("#%d: ", src);
-        // for(int i = 0; i < dim; i++)
-        // {
-        //     printf("%d ", indexA[i]);
-        // }
-        // printf(" -> ");
-        // for(int i = 0; i < dim; i++)
-        // {
-        //     printf("%d ", indexB[i]);
-        // }
-        // printf("#%d\n", dst);
         free(indexA);
         free(indexB);
     }
