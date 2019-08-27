@@ -1,6 +1,6 @@
 #include "onnx.h"
 
-float* transpose(const float* A, long* shape, long dim, long* perm)
+float* transpose(const float* A, int64_t* shape, int64_t dim, int64_t* perm)
 {
     // Get array size
     int elem = 1;
@@ -74,7 +74,7 @@ float* transpose(const float* A, long* shape, long dim, long* perm)
     return B;
 }
 
-float* transpose_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+float* transpose_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" );
 
@@ -84,8 +84,8 @@ float* transpose_layer(Onnx__GraphProto* graph, const float *input, long* shapeI
         return NULL;
     }
 
-    long perm_t[3];
-    long* perm = node->attribute[0]->ints;
+    int64_t perm_t[3];
+    int64_t* perm = node->attribute[0]->ints;
     perm_t[0] = perm[1] - 1;
     perm_t[1] = perm[2] - 1;
     perm_t[2] = perm[3] - 1;

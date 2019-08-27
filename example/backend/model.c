@@ -1,8 +1,8 @@
 #include "onnx.h"
 
-float* onnx_model_run(Onnx__ModelProto* model, float* input, long* shapeInput)
+float* onnx_model_run(Onnx__ModelProto* model, float* input, int64_t* shapeInput)
 {
-    long* shapeOutput = (long*) malloc(sizeof(long)*3);
+    int64_t* shapeOutput = (int64_t*) malloc(sizeof(int64_t)*3);
     shapeOutput[0] = -1; shapeOutput[1] = -1; shapeOutput[2] =  -1;
 
     Onnx__NodeProto* node = onnx_graph_get_node_by_input(model->graph, model->graph->input[0]->name);
@@ -59,7 +59,7 @@ float* onnx_model_run(Onnx__ModelProto* model, float* input, long* shapeInput)
 
             // free(input);
             // input = output;
-            memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+            memcpy(shapeInput, shapeOutput, sizeof(int64_t)*3);
 
             node = onnx_graph_get_node_by_input(model->graph, node->output[0]);
             continue;
@@ -72,7 +72,7 @@ float* onnx_model_run(Onnx__ModelProto* model, float* input, long* shapeInput)
 
         free(input);
         input = output;
-        memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+        memcpy(shapeInput, shapeOutput, sizeof(int64_t)*3);
 
         node = onnx_graph_get_node_by_input(model->graph, node->output[0]);
     }

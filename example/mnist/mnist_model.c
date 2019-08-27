@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <assert.h>
 
 #include "mnist.h"
@@ -20,10 +19,10 @@ int main(int argc, char const *argv[])
     }
 
     // 1. Initialize input
-    long* shapeInput = (long*) malloc(sizeof(long)*3);
+    int64_t* shapeInput = (int64_t*) malloc(sizeof(int64_t)*3);
     shapeInput[0] = 28; shapeInput[1] = 28; shapeInput[2] =  1;
 
-    float* input = (float*) malloc(sizeof(long)*28*28);
+    float* input = (float*) malloc(sizeof(int64_t)*28*28);
     memcpy(input, img[MNIST_TEST_IMAGE], sizeof(float)*28*28);
 
     print_img(input);

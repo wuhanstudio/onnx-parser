@@ -43,7 +43,7 @@ void maxpool(const float *input,
     }
 }
 
-float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, long* shapeOutput, const char* layer_name)
+float* maxpool_layer(Onnx__GraphProto* graph, float* input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" );
 
@@ -54,12 +54,12 @@ float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, lo
         return NULL;
     }
 
-    uint16_t kernel_x = -1;
-    uint16_t kernel_y = -1;
+    uint16_t kernel_x  = 1;
+    uint16_t kernel_y  = 1;
     uint16_t padding_x = 0;
     uint16_t padding_y = 0;
-    uint16_t stride_x = -1;
-    uint16_t stride_y = -1;
+    uint16_t stride_x  = 1;
+    uint16_t stride_y  = 1;
 
     for(int i = 0; i < node->n_attribute; i++)
     {

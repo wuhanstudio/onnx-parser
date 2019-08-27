@@ -57,7 +57,7 @@ void conv2D(const float *input,                                                /
     }
 }
 
-float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+float* conv2D_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" );
 
@@ -71,12 +71,12 @@ float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInpu
     const char* bias = node->input[2];
 
     // Get weight shape
-    long* shapeW = onnx_graph_get_dims_by_name(graph, weight);
+    int64_t* shapeW = onnx_graph_get_dims_by_name(graph, weight);
     if(shapeW == NULL)
     {
         return NULL;
     }
-    long dimW = onnx_graph_get_dim_by_name(graph, weight);
+    int64_t dimW = onnx_graph_get_dim_by_name(graph, weight);
     if(dimW < 0)
     {
         return NULL;
@@ -84,7 +84,7 @@ float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInpu
 
     // Get weights
     // NCWH --> NWHC
-    long permW_t[] = { 0, 2, 3, 1};
+    int64_t permW_t[] = { 0, 2, 3, 1};
     float* W = onnx_graph_get_weights_by_name(graph, weight);
     if(W == NULL)
     {

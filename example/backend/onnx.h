@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <malloc.h>
 #include <float.h>
 #include <math.h>
 
@@ -25,19 +24,19 @@
 #endif
 
 // Model
-void* onnx_tensor_info(const float* A, long* shape, long dim);
-float* onnx_model_run(Onnx__ModelProto* model, float* input, long* shapeInput);
+void   onnx_tensor_info(const float* A, int64_t* shape, int64_t dim);
+float* onnx_model_run(Onnx__ModelProto* model, float* input, int64_t* shapeInput);
 
 // Layers
-float* conv2D_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* relu_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* maxpool_layer(Onnx__GraphProto* graph, float* input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
-float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name);
+float* conv2D_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name);
+float* relu_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name);
+float* maxpool_layer(Onnx__GraphProto* graph, float* input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name);
+float* matmul_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name);
+float* add_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name);
+float* softmax_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name);
 
 // Operators
-float* transpose(const float* A, long* shape, long dim, long* perm);
+float* transpose(const float* A, int64_t* shape, int64_t dim, int64_t* perm);
 
 void conv2D(const float *input,                                                // input image
             const uint16_t dim_im_in_x,                                        // input image dimention x

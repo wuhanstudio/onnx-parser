@@ -16,7 +16,7 @@ void softmax(const float *input, const uint32_t dim_vec, float *output)
     }
 }
 
-float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+float* softmax_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" && shapeInput[1] > 0);
 
@@ -24,7 +24,7 @@ float* softmax_layer(Onnx__GraphProto* graph, const float *input, long* shapeInp
     memset(output, 0, sizeof(sizeof(float)*shapeInput[1]));
     softmax(input, shapeInput[1], output);
 
-    memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+    memcpy(shapeInput, shapeOutput, sizeof(int64_t)*3);
 
     return output;
 }

@@ -1,6 +1,6 @@
 #include "onnx.h"
 
-void* onnx_tensor_info(const float* A, long* shape, long dim)
+void onnx_tensor_info(const float* A, int64_t* shape, int64_t dim)
 {
     int elem = 1;
     for(int i = 0; i < dim; i++)

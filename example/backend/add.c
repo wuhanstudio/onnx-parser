@@ -11,7 +11,7 @@ void add(const float *input,              // pointer to vector
     }
 }
 
-float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+float* add_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" );
 
@@ -19,7 +19,7 @@ float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, 
     const char* bias = node->input[1];
 
     float* B = onnx_graph_get_weights_by_name(graph, bias);
-    long* shapeB =  onnx_graph_get_dims_by_name(graph, bias);
+    int64_t* shapeB =  onnx_graph_get_dims_by_name(graph, bias);
     if(shapeB == NULL)
     {
         return NULL;
@@ -29,7 +29,7 @@ float* add_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, 
     memset(output, 0, sizeof(sizeof(float)*shapeB[0]));
     add(input, B, shapeB[0], output);
 
-    memcpy(shapeInput, shapeOutput, sizeof(long)*3);
+    memcpy(shapeInput, shapeOutput, sizeof(int64_t)*3);
 
     return output;
 }

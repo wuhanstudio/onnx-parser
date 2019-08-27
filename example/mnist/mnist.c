@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
 #include <float.h>
 #include <math.h>
 
@@ -18,9 +17,9 @@ int main(int argc, char const *argv[])
     print_img(img[img_index]);
 
     // 1. Conv2D
-    long shapeW3[] = {2, 1, 3, 3};
-    long dimW3 = 4;
-    long permW3_t[] = { 0, 2, 3, 1};
+    int64_t shapeW3[] = {2, 1, 3, 3};
+    int64_t dimW3 = 4;
+    int64_t permW3_t[] = { 0, 2, 3, 1};
     float* W3_t = transpose(W3, shapeW3, dimW3, permW3_t);
 
     float* conv1 = (float*) malloc(sizeof(float)*28*28*2);
@@ -43,9 +42,9 @@ int main(int argc, char const *argv[])
     free(relu1);
 
     // 4. Conv2D
-    long shapeW2[] = {2, 2, 3, 3};
-    long dimW2 = 4;
-    long perm_t[] = { 0, 2, 3, 1};
+    int64_t shapeW2[] = {2, 2, 3, 3};
+    int64_t dimW2 = 4;
+    int64_t perm_t[] = { 0, 2, 3, 1};
     float* W2_t = transpose(W2, shapeW2, dimW2, perm_t);
 
     float* conv2 = (float*) malloc(sizeof(float)*14*14*2);
@@ -71,9 +70,9 @@ int main(int argc, char const *argv[])
     // Flatten NOT REQUIRED
 
     // 7. Dense
-    long shapeW1[] = {98, 4};
-    long dimW1 = 2;
-    long permW1_t[] = { 1, 0};
+    int64_t shapeW1[] = {98, 4};
+    int64_t dimW1 = 2;
+    int64_t permW1_t[] = { 1, 0};
     float* W1_t = transpose(W1, shapeW1, dimW1, permW1_t);
 
     float* dense1 = (float*) malloc(sizeof(float)*4);
@@ -84,9 +83,9 @@ int main(int argc, char const *argv[])
     free(maxpool2);
 
     // 8. Dense
-    long shapeW[] = {4, 10};
-    long dimW = 2;
-    long permW_t[] = { 1, 0};
+    int64_t shapeW[] = {4, 10};
+    int64_t dimW = 2;
+    int64_t permW_t[] = { 1, 0};
     float* W_t = transpose(W, shapeW, dimW, permW_t);
 
     float* dense2 = (float*) malloc(sizeof(float)*10);

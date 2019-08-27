@@ -17,19 +17,19 @@ void matmul(const float *input,              // pointer to vector
     }
 }
 
-float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInput, long* shapeOutput, const char* layer_name)
+float* matmul_layer(Onnx__GraphProto* graph, const float *input, int64_t* shapeInput, int64_t* shapeOutput, const char* layer_name)
 {
     assert(graph != NULL && input != NULL && layer_name != "" );
 
     Onnx__NodeProto* node = onnx_graph_get_node_by_name(graph, layer_name);
     const char* weight = node->input[1];
 
-    long* shapeW =  onnx_graph_get_dims_by_name(graph, weight);
+    int64_t* shapeW =  onnx_graph_get_dims_by_name(graph, weight);
     if(shapeW == NULL)
     {
         return NULL;
     }
-    long dimW = onnx_graph_get_dim_by_name(graph, weight);
+    int64_t dimW = onnx_graph_get_dim_by_name(graph, weight);
     if(dimW < 0)
     {
         return NULL;
@@ -37,7 +37,7 @@ float* matmul_layer(Onnx__GraphProto* graph, const float *input, long* shapeInpu
 
     assert(shapeW[0] == shapeInput[1]);
 
-    long permW_t[] = {1, 0};
+    int64_t permW_t[] = {1, 0};
     float* W = onnx_graph_get_weights_by_name(graph, weight);
     if(W == NULL)
     {
