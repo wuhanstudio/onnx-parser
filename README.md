@@ -7,8 +7,9 @@ Open Neural Network Exchange model parser in C
 ### 1. Build instructions:
 
 ```
-cd examples/
-scons
+$ sudo apt install scons libprotobuf-c-dev
+$ cd examples/
+$ scons
 ```
 
 
